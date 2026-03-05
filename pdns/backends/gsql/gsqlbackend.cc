@@ -595,6 +595,12 @@ void GSQLBackend::getUpdatedPrimaries(vector<DomainInfo>& updatedDomains, std::u
     }
 
     bool isSlave = pdns_iequals(row[2], "SLAVE");
+
+    // Skip secondary zones unless secondary-catalog-members is enabled
+    if (isSlave && !::arg().mustDo("secondary-catalog-members")) {
+      continue;
+    }
+
     if (!pdns_iequals(row[2], "MASTER") && !isSlave) {
       g_log << Logger::Warning << __PRETTY_FUNCTION__ << " type '" << row[2] << "' for zone '" << di.zone << "' is no primary type" << endl;
     }

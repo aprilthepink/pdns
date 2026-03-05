@@ -106,6 +106,7 @@ Assigning members to a producer zone
 
 After the producer zone is created it is necessary to assign member zones to it.
 Both primary and secondary zones can be members of a producer zone.
+Secondary zone support requires :ref:`setting-secondary-catalog-members` to be enabled.
 In the example below ``example.com`` is the member and ``catalog.example`` is the catalog.
 
 .. code-block:: shell
@@ -121,7 +122,8 @@ or, prior to version 5.0:
   pdnsutil set-kind example.com primary
 
 Secondary zones can also be assigned to a producer zone, allowing operators to redistribute zones
-received via AXFR through their infrastructure using catalog zones:
+received via AXFR through their infrastructure using catalog zones.
+This requires the :ref:`setting-secondary-catalog-members` setting to be enabled:
 
 .. code-block:: shell
 

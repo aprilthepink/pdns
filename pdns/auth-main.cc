@@ -337,7 +337,8 @@ static void declareArguments()
 
   ::arg().setSwitch("consistent-backends", "Assume individual zones are not divided over backends. Send only ANY lookup operations to the backend to reduce the number of lookups") = "yes";
 
-  ::arg().set("default-catalog-zone", "Catalog zone to assign newly created primary or secondary zones (via the API) to") = "";
+  ::arg().set("default-catalog-zone", "Catalog zone to assign newly created primary zones (via the API) to, or also secondary zones when secondary-catalog-members is enabled") = "";
+  ::arg().setSwitch("secondary-catalog-members", "Allow secondary zones to be members of a producer catalog zone") = "no";
 
 #ifdef ENABLE_GSS_TSIG
   ::arg().setSwitch("enable-gss-tsig", "Enable GSS TSIG processing") = "no";

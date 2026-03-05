@@ -2164,7 +2164,7 @@ static void apiServerZonesPOST(HttpRequest* req, HttpResponse* resp)
 
     updateDomainSettingsFromDocument(backend, domainInfo, zonename, document, !new_records.empty());
 
-    if (!catalog && (kind == DomainInfo::Primary || kind == DomainInfo::Secondary)) {
+    if (!catalog && (kind == DomainInfo::Primary || (kind == DomainInfo::Secondary && ::arg().mustDo("secondary-catalog-members")))) {
       const auto& defaultCatalog = ::arg()["default-catalog-zone"];
       if (!defaultCatalog.empty()) {
         domainInfo.backend->setCatalog(zonename, ZoneName(defaultCatalog));
