@@ -381,7 +381,7 @@ The value of :ref:`metadata-api-rectify` if it is not set on the zone.
 
 .. versionadded:: 4.8.3
 
-When a primary zone is created via the API, and the request does not specify a catalog zone, the name given here will be used.
+When a primary or secondary zone is created via the API, and the request does not specify a catalog zone, the name given here will be used.
 
 .. _setting-default-ksk-algorithms:
 .. _setting-default-ksk-algorithm:

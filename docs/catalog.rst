@@ -105,6 +105,7 @@ Assigning members to a producer zone
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After the producer zone is created it is necessary to assign member zones to it.
+Both primary and secondary zones can be members of a producer zone.
 In the example below ``example.com`` is the member and ``catalog.example`` is the catalog.
 
 .. code-block:: shell
@@ -118,6 +119,14 @@ or, prior to version 5.0:
 
   pdnsutil set-catalog example.com catalog.example
   pdnsutil set-kind example.com primary
+
+Secondary zones can also be assigned to a producer zone, allowing operators to redistribute zones
+received via AXFR through their infrastructure using catalog zones:
+
+.. code-block:: shell
+
+  pdnsutil catalog set example.com catalog.example
+  pdnsutil zone set-kind example.com secondary
 
 Setting catalog values is supported in the :doc:`API <http-api/zone>`, by setting the ``catalog`` property in the zone properties.
 Setting the catalog to an empty ``""`` removes the member zone from the catalog it is in.

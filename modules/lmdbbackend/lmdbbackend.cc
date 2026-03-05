@@ -2391,14 +2391,15 @@ void LMDBBackend::getUpdatedPrimaries(vector<DomainInfo>& updatedDomains, std::u
   CatalogInfo ci;
 
   getAllDomainsFiltered(&(updatedDomains), [this, &catalogs, &catalogHashes, &ci](DomainInfo& di) {
-    if (!di.isPrimaryType()) {
-      return false;
-    }
-
     if (di.kind == DomainInfo::Producer) {
       catalogs.insert(di.zone.operator const DNSName&());
       catalogHashes[di.zone].process("\0");
       return false; // Producer freshness check is performed elsewhere
+    }
+
+    // Process primary zones, and secondary zones that are catalog members
+    if (!di.isPrimaryType() && !(di.kind == DomainInfo::Secondary && !di.catalog.empty())) {
+      return false;
     }
 
     if (!di.catalog.empty()) {
@@ -2406,7 +2407,8 @@ void LMDBBackend::getUpdatedPrimaries(vector<DomainInfo>& updatedDomains, std::u
       ci.updateHash(catalogHashes, di);
     }
 
-    if (getSerial(di) && di.serial != di.notified_serial) {
+    // Only primary zones can trigger NOTIFYs
+    if (di.kind == DomainInfo::Primary && getSerial(di) && di.serial != di.notified_serial) {
       di.backend = this;
       return true;
     }
@@ -2450,7 +2452,7 @@ bool LMDBBackend::getCatalogMembers(const ZoneName& catalog, vector<CatalogInfo>
 
   try {
     getAllDomainsFiltered(&scratch, [&catalog, &members, &type](DomainInfo& di) {
-      if ((type == CatalogInfo::CatalogType::Producer && di.kind != DomainInfo::Primary) || (type == CatalogInfo::CatalogType::Consumer && di.kind != DomainInfo::Secondary) || di.catalog != catalog) {
+      if ((type == CatalogInfo::CatalogType::Producer && di.kind != DomainInfo::Primary && di.kind != DomainInfo::Secondary) || (type == CatalogInfo::CatalogType::Consumer && di.kind != DomainInfo::Secondary) || di.catalog != catalog) {
         return false;
       }
 
