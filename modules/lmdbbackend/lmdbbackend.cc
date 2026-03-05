@@ -2398,7 +2398,8 @@ void LMDBBackend::getUpdatedPrimaries(vector<DomainInfo>& updatedDomains, std::u
     }
 
     // Process primary zones, and secondary zones that are catalog members
-    if (!di.isPrimaryType() && !(di.kind == DomainInfo::Secondary && !di.catalog.empty())) {
+    bool isProducerMember = di.kind == DomainInfo::Primary || (di.kind == DomainInfo::Secondary && !di.catalog.empty());
+    if (!isProducerMember) {
       return false;
     }
 
