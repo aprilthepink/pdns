@@ -338,7 +338,7 @@ queries.
 On primaries
 ~~~~~~~~~~~~
 
--  ``info-all-primary-query``: Called to get data on all domains for which the server is primary.
+-  ``info-all-primary-query``: Called to get data on all domains for which the server is primary, as well as secondary domains that are members of a producer catalog zone.
 -  ``update-serial-query`` Called to update the last notified serial of a primary domain.
 
 On secondaries

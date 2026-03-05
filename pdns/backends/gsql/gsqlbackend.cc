@@ -593,7 +593,15 @@ void GSQLBackend::getUpdatedPrimaries(vector<DomainInfo>& updatedDomains, std::u
       catalogHashes[di.zone].process("\0");
       continue; // Producer freshness check is performed elsewhere
     }
-    else if (!pdns_iequals(row[2], "MASTER")) {
+
+    bool isSlave = pdns_iequals(row[2], "SLAVE");
+
+    // Skip secondary zones unless secondary-catalog-members is enabled
+    if (isSlave && !::arg().mustDo("secondary-catalog-members")) {
+      continue;
+    }
+
+    if (!pdns_iequals(row[2], "MASTER") && !isSlave) {
       g_log << Logger::Warning << __PRETTY_FUNCTION__ << " type '" << row[2] << "' for zone '" << di.zone << "' is no primary type" << endl;
     }
 
@@ -605,6 +613,11 @@ void GSQLBackend::getUpdatedPrimaries(vector<DomainInfo>& updatedDomains, std::u
     }
     catch (const std::exception& e) {
       g_log << Logger::Warning << __PRETTY_FUNCTION__ << " catalog hash update failed'" << row[4] << "' for zone '" << di.zone << "' member of '" << di.catalog << "': " << e.what() << endl;
+      continue;
+    }
+
+    // Secondary zones only contribute to catalog hashes, not to NOTIFYs
+    if (isSlave) {
       continue;
     }
 

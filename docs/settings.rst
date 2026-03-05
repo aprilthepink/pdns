@@ -382,6 +382,20 @@ The value of :ref:`metadata-api-rectify` if it is not set on the zone.
 .. versionadded:: 4.8.3
 
 When a primary zone is created via the API, and the request does not specify a catalog zone, the name given here will be used.
+When :ref:`setting-secondary-catalog-members` is enabled, this also applies to secondary zones.
+
+.. _setting-secondary-catalog-members:
+
+``secondary-catalog-members``
+-----------------------------
+
+- Boolean
+- Default: no
+
+Allow secondary zones to be members of a producer catalog zone.
+When enabled, secondary zones can be assigned to a producer catalog zone
+and will be included in the catalog zone contents.
+This allows operators who act as secondaries to redistribute zones received via AXFR through their infrastructure using catalog zones.
 
 .. _setting-default-ksk-algorithms:
 .. _setting-default-ksk-algorithm:

@@ -2389,16 +2389,19 @@ void LMDBBackend::setLastCheckTime(domainid_t domain_id, time_t last_check)
 void LMDBBackend::getUpdatedPrimaries(vector<DomainInfo>& updatedDomains, std::unordered_set<DNSName>& catalogs, CatalogHashMap& catalogHashes)
 {
   CatalogInfo ci;
+  bool secondaryCatalogMembers = ::arg().mustDo("secondary-catalog-members");
 
-  getAllDomainsFiltered(&(updatedDomains), [this, &catalogs, &catalogHashes, &ci](DomainInfo& di) {
-    if (!di.isPrimaryType()) {
-      return false;
-    }
-
+  getAllDomainsFiltered(&(updatedDomains), [this, &catalogs, &catalogHashes, &ci, secondaryCatalogMembers](DomainInfo& di) {
     if (di.kind == DomainInfo::Producer) {
       catalogs.insert(di.zone.operator const DNSName&());
       catalogHashes[di.zone].process("\0");
       return false; // Producer freshness check is performed elsewhere
+    }
+
+    // Process primary zones, and optionally secondary zones that are catalog members
+    bool isProducerMember = di.kind == DomainInfo::Primary || (secondaryCatalogMembers && di.kind == DomainInfo::Secondary && !di.catalog.empty());
+    if (!isProducerMember) {
+      return false;
     }
 
     if (!di.catalog.empty()) {
@@ -2406,7 +2409,8 @@ void LMDBBackend::getUpdatedPrimaries(vector<DomainInfo>& updatedDomains, std::u
       ci.updateHash(catalogHashes, di);
     }
 
-    if (getSerial(di) && di.serial != di.notified_serial) {
+    // Only primary zones can trigger NOTIFYs
+    if (di.kind == DomainInfo::Primary && getSerial(di) && di.serial != di.notified_serial) {
       di.backend = this;
       return true;
     }
@@ -2447,10 +2451,23 @@ public:
 bool LMDBBackend::getCatalogMembers(const ZoneName& catalog, vector<CatalogInfo>& members, CatalogInfo::CatalogType type)
 {
   vector<DomainInfo> scratch;
+  bool secondaryCatalogMembers = ::arg().mustDo("secondary-catalog-members");
 
   try {
-    getAllDomainsFiltered(&scratch, [&catalog, &members, &type](DomainInfo& di) {
-      if ((type == CatalogInfo::CatalogType::Producer && di.kind != DomainInfo::Primary) || (type == CatalogInfo::CatalogType::Consumer && di.kind != DomainInfo::Secondary) || di.catalog != catalog) {
+    getAllDomainsFiltered(&scratch, [&catalog, &members, &type, secondaryCatalogMembers](DomainInfo& di) {
+      if (di.catalog != catalog) {
+        return false;
+      }
+
+      bool isValidMember = false;
+      if (type == CatalogInfo::CatalogType::Producer) {
+        isValidMember = di.kind == DomainInfo::Primary || (secondaryCatalogMembers && di.kind == DomainInfo::Secondary);
+      }
+      else if (type == CatalogInfo::CatalogType::Consumer) {
+        isValidMember = di.kind == DomainInfo::Secondary;
+      }
+
+      if (!isValidMember) {
         return false;
       }
 
