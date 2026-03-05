@@ -2455,7 +2455,19 @@ bool LMDBBackend::getCatalogMembers(const ZoneName& catalog, vector<CatalogInfo>
 
   try {
     getAllDomainsFiltered(&scratch, [&catalog, &members, &type, secondaryCatalogMembers](DomainInfo& di) {
-      if ((type == CatalogInfo::CatalogType::Producer && di.kind != DomainInfo::Primary && !(secondaryCatalogMembers && di.kind == DomainInfo::Secondary)) || (type == CatalogInfo::CatalogType::Consumer && di.kind != DomainInfo::Secondary) || di.catalog != catalog) {
+      if (di.catalog != catalog) {
+        return false;
+      }
+
+      bool isValidMember = false;
+      if (type == CatalogInfo::CatalogType::Producer) {
+        isValidMember = di.kind == DomainInfo::Primary || (secondaryCatalogMembers && di.kind == DomainInfo::Secondary);
+      }
+      else if (type == CatalogInfo::CatalogType::Consumer) {
+        isValidMember = di.kind == DomainInfo::Secondary;
+      }
+
+      if (!isValidMember) {
         return false;
       }
 
